@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MIRZA SBT Mint Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23000'/><text x='50%' y='50%' font-size='70' text-anchor='middle' dominant-baseline='middle' font-family='Arial, sans-serif' font-weight='bold' fill='%2300e0e0'>M</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<style>
+  :root{
+    --bg: #0a1128; 
+    --card: rgba(16, 32, 64, 0.6); 
+    --accent: #00e0e0; 
+    --accent-dark: #00b8b8;
+    --accent-light: #00f0f0;
+    --muted: rgba(255, 255, 255, 0.7);
+    --text: #ffffff;
+    --success: #00e0e0;
+    --warning: #ffd166;
+    --error: #ef476f;
+    --border: rgba(0, 224, 224, 0.3);
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  body{
+    margin:0; 
+    padding:0; 
+    font-family: "Segoe UI", "SF Pro Display", -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+    background: 
+      radial-gradient(circle at 20% 80%, rgba(0, 150, 200, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(0, 180, 220, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(0, 200, 255, 0.3) 0%, transparent 50%),
+      linear-gradient(135deg, #0a1128 0%, #1a2a4a 50%, #0a1128 100%);
+    color: var(--text);
+    display:flex; 
+    justify-content:center; 
+    align-items:flex-start; 
+    min-height:100vh;
+    line-height: 1.5;
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+      radial-gradient(circle at 15% 50%, rgba(0, 224, 224, 0.1) 0%, transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(0, 224, 224, 0.1) 0%, transparent 25%),
+      radial-gradient(circle at 50% 80%, rgba(0, 224, 224, 0.1) 0%, transparent 25%);
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  .crystal {
+    position: fixed;
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(45deg, rgba(0, 224, 224, 0.15), rgba(0, 180, 220, 0.1));
+    border-radius: 50%;
+    filter: blur(40px);
+    z-index: -1;
+    animation: float 8s ease-in-out infinite;
+  }
+  
+  .crystal:nth-child(1) {
+    top: 10%;
+    left: 10%;
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(45deg, rgba(0, 150, 200, 0.2), rgba(0, 200, 255, 0.15));
+    animation-delay: 0s;
+  }
+  
+  .crystal:nth-child(2) {
+    top: 60%;
+    right: 10%;
+    width: 250px;
+    height: 250px;
+    background: linear-gradient(45deg, rgba(0, 200, 255, 0.2), rgba(0, 150, 200, 0.15));
+    animation-delay: -2s;
+  }
+  
+  .crystal:nth-child(3) {
+    bottom: 20%;
+    left: 20%;
+    width: 180px;
+    height: 180px;
+    background: linear-gradient(45deg, rgba(0, 180, 220, 0.15), rgba(0, 224, 224, 0.1));
+    animation-delay: -4s;
+  }
+  
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-20px) rotate(180deg);
+    }
+  }
+  
+  .app {
+    width:100%; 
+    max-width:980px; 
+    background: rgba(16, 32, 64, 0.7);
+    border-radius:24px; 
+    padding:32px; 
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(0, 224, 224, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    margin: 24px;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 224, 224, 0.2);
+    position: relative;
+    z-index: 1;
+  }
+  
+  header{ 
+    display:flex; 
+    gap:16px; 
+    align-items:center; 
+    justify-content:space-between; 
+    margin-bottom:28px; 
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  
+  .logo-section {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .logo {
+    width: 60px;
+    height: 60px;
+    background: rgba(10, 17, 40, 0.9);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-weight: 900;
+    font-size: 32px;
+    border: 2px solid var(--accent);
+    box-shadow: 
+      0 0 20px rgba(0, 224, 224, 0.4),
+      0 8px 16px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    font-family: 'Orbitron', monospace;
+  }
+  
+  h1{ 
+    font-size:28px; 
+    margin:0; 
+    color:var(--text); 
+    font-weight:800; 
+    letter-spacing:-0.5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  .mirza-text {
+    color: var(--accent);
+    font-weight: 800;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+  
+  .accent-text {
+    color: var(--accent);
+    font-weight: 800;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+  
+  .sub{ 
+    color: var(--text);
+    margin-top:6px; 
+    font-size:14px; 
+    font-weight:700;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  
+  .ecosystem-text {
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 4px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  
+  .cyan-text {
+    color: var(--accent);
+    font-weight: 700;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+  
+  .controls { 
+    display:flex; 
+    gap:12px; 
+    flex-wrap:wrap; 
+    align-items:center; 
+  }
+  
+  button {
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: #0a1128; 
+    border: none;
+    padding:12px 20px;
+    border-radius:12px; 
+    font-weight:600; 
+    cursor:pointer; 
+    box-shadow: 0 6px 18px rgba(0, 224, 224, 0.3);
+    transition: all 0.3s ease;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 224, 224, 0.3);
+  }
+  
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 24px rgba(0, 224, 224, 0.4),
+      0 0 0 1px rgba(0, 224, 224, 0.5);
+    background: linear-gradient(135deg, var(--accent-light), var(--accent));
+  }
+  
+  button:active {
+    transform: translateY(0);
+  }
+  
+  button.secondary { 
+    background: transparent; 
+    color: var(--accent); 
+    border: 2px solid var(--accent); 
+    box-shadow: 0 4px 12px rgba(0, 224, 224, 0.2);
+  }
+  
+  button.secondary:hover {
+    background: var(--accent);
+    color: #0a1128;
+    box-shadow: 0 6px 18px rgba(0, 224, 224, 0.4);
+  }
+  
+  button.ghost { 
+    background: transparent; 
+    color: var(--muted); 
+    border: 1px dashed rgba(0, 224, 224, 0.4); 
+    box-shadow: none;
+  }
+  
+  button.ghost:hover {
+    background: rgba(0, 224, 224, 0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  
+  button:disabled { 
+    opacity:0.4; 
+    cursor:not-allowed; 
+    transform:none; 
+    box-shadow:none; 
+    background: rgba(255,255,255,0.1);
+    color: var(--muted);
+    border-color: var(--muted);
+  }
+  
+  /* Updated styles for connected state */
+  button.connected {
+    background: linear-gradient(135deg, var(--accent-light), var(--accent));
+    color: #0a1128;
+    border: 2px solid var(--accent-light);
+    box-shadow: 0 0 20px rgba(0, 240, 240, 0.5);
+    font-weight: 700;
+  }
+  
+  button.connected:hover {
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    box-shadow: 0 0 25px rgba(0, 240, 240, 0.6);
+  }
+  
+  .grid { 
+    display:grid; 
+    grid-template-columns: 1fr 340px; 
+    gap:24px; 
+    margin-top:24px; 
+    align-items:start; 
+  }
+  
+  .card { 
+    background: var(--card); 
+    padding:24px; 
+    border-radius:20px; 
+    border:1px solid var(--border);
+    box-shadow: 
+      0 8px 24px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255,255,255,0.1);
+    backdrop-filter: blur(15px);
+  }
+  
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(0, 224, 224, 0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 16px;
+    font-weight: bold;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 224, 224, 0.2);
+  }
+  
+  .strong { 
+    font-weight:700; 
+    color:#fff; 
+    font-size:18px; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  
+  .muted { 
+    color:var(--muted); 
+    font-weight:600; 
+    font-size:14px; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  
+  .status { 
+    margin-top:16px; 
+    padding:16px; 
+    border-radius:14px; 
+    background: rgba(0, 224, 224, 0.08); 
+    font-weight:600; 
+    color:var(--muted); 
+    border-left: 4px solid var(--accent);
+    backdrop-filter: blur(10px);
+  }
+  
+  .controls-col { 
+    display:flex; 
+    flex-direction:column; 
+    gap:16px; 
+  }
+  
+  .action-group {
+    padding: 18px;
+    border-radius: 16px;
+    background: rgba(0, 224, 224, 0.05);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+  }
+  
+  .row { 
+    display:flex; 
+    gap:12px; 
+    align-items:center; 
+    flex-wrap:wrap; 
+    margin-top:12px;
+  }
+  
+  #nftPreview { 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    gap:16px; 
+    padding-top:12px; 
+  }
+  
+  #nftPreview img { 
+    width:260px; 
+    height:260px; 
+    object-fit:cover; 
+    border-radius:20px; 
+    box-shadow: 
+      0 12px 36px rgba(0,0,0,0.4),
+      0 0 0 1px rgba(0, 224, 224, 0.2);
+    border:1px solid rgba(0, 224, 224, 0.2);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+  }
+  
+  #nftPreview img:hover {
+    transform: scale(1.03);
+    box-shadow: 
+      0 16px 48px rgba(0,0,0,0.5),
+      0 0 0 1px rgba(0, 224, 224, 0.3);
+  }
+  
+  #nftPreview .title { 
+    font-weight:800; 
+    color: var(--accent);
+    font-size:20px; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+  
+  #nftPreview .desc { 
+    font-weight:700; 
+    color: var(--accent);
+    font-size:14px; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    text-align: center;
+    max-width: 260px;
+    line-height: 1.4;
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  
+  .small { 
+    font-size:13px; 
+    color:var(--muted); 
+    font-weight:500; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  
+  .countdown { 
+    font-weight:700; 
+    color:var(--warning);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 224, 224, 0.1);
+  }
+  
+  .info-row:last-child {
+    border-bottom: none;
+  }
+  
+  footer { 
+    margin-top:28px; 
+    color: var(--accent);
+    font-size:13px; 
+    font-weight: 700;
+    text-align:center; 
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: rgba(0, 224, 224, 0.15);
+    color: var(--accent);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 224, 224, 0.2);
+    font-family: 'Orbitron', monospace;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+  }
+  
+  .empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+    font-weight: bold;
+    color: var(--accent);
+  }
+  
+  .nft-description {
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom:12px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  
+  .milker-font {
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+  
+  @media (max-width:880px){ 
+    .grid{ 
+      grid-template-columns: 1fr; 
+    } 
+    #nftPreview img{ 
+      width:200px; 
+      height:200px; 
+    } 
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .controls {
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .crystal {
+      display: none;
+    }
+  }
+  
+  @media (max-width:600px){
+    .app {
+      padding: 20px;
+      margin: 12px;
+      border-radius: 20px;
+    }
+    .card {
+      padding: 18px;
+    }
+    .logo {
+      width: 50px;
+      height: 50px;
+      font-size: 28px;
+    }
+    h1 {
+      font-size: 24px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="crystal"></div>
+  <div class="crystal"></div>
+  <div class="crystal"></div>
+  
+  <div class="app" role="main">
+    <header>
+      <div class="logo-section">
+        <div class="logo">M</div>
+        <div>
+          <h1><span class="mirza-text">MIRZA</span> <span class="accent-text">SBT</span> Mint Portal</h1>
+          <div class="ecosystem-text">Unique digital identity for the <span class="cyan-text">MIRZA ECOSYSTEM</span></div>
+          <div class="sub">Sepolia Testnet — Mint Soulbound Tokens with <span class="cyan-text">MIRZA</span></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="addTokenBtn" class="secondary">Add <span class="milker-font">MIRZA</span></button>
+        <button id="connectBtn" class="secondary">Connect Wallet</button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Left column: actions -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">→</div>
+          <div class="strong">Actions</div>
+        </div>
+
+        <div class="controls-col">
+          <div class="action-group">
+            <div class="muted">Faucet <span class="badge">10 <span class="milker-font">MIRZA</span> / 24h</span></div>
+            <div class="row">
+              <button id="faucetBtn">Claim 10 <span class="milker-font">MIRZA</span></button>
+              <div id="faucetInfo" class="small muted">Not connected</div>
+            </div>
+          </div>
+
+          <div class="action-group">
+            <div class="muted">Token Approval</div>
+            <div class="row">
+              <button id="approveBtn">Approve 8 <span class="milker-font">MIRZA</span></button>
+              <div id="approveInfo" class="small muted">Allowance: —</div>
+            </div>
+          </div>
+
+          <div class="action-group">
+            <div class="muted">Mint SBT</div>
+            <div class="row">
+              <button id="mintBtn">Mint SBT</button>
+              <div id="mintInfo" class="small muted">Not minted</div>
+            </div>
+          </div>
+
+          <div class="status" id="statusBox">
+            <span style="font-weight:700">Status:</span> <span id="statusText">Wallet not connected</span>
+          </div>
+
+          <div class="info-row">
+            <div class="small muted">Account:</div>
+            <div class="small" id="shortAddr">—</div>
+          </div>
+          <div class="info-row">
+            <div class="small muted">Network:</div>
+            <div class="small" id="networkInfo">—</div>
+          </div>
+
+          <button id="disconnectBtn" class="secondary" disabled>Disconnect Wallet</button>
+        </div>
+      </div>
+
+      <!-- Right column: NFT preview -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">◼</div>
+          <div class="strong">Your Soulbound NFT</div>
+        </div>
+        <div class="nft-description">Automatically shows your minted SBT</div>
+
+        <div id="nftPreview">
+          <div id="emptyState" class="empty-state">
+            <div class="empty-state-icon">◼</div>
+            <div class="muted">No NFT minted yet</div>
+            <div class="small" style="margin-top:8px;">Mint your SBT to see it here</div>
+          </div>
+          <img id="nftImage" src="" alt="MIRZA SBT" style="display:none">
+          <div id="nftTitle" class="title" style="display:none"></div>
+          <div id="nftDesc" class="desc" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>Built for <span class="milker-font">MIRZA</span> • Ensure metadata & images are correctly uploaded to IPFS</footer>
+  </div>
+
+<script>
+/* ---------- CONFIG (change here if needed) ---------- */
+const MIRZA_TOKEN = "0xEf6A9AA442191Ecdb7B1Dd26DBE727DBA6731E16";
+const FAUCET_CONTRACT = "0xdD3276784F8A116C29b3C768Fd7A5DFebc811B19";
+const SBT_CONTRACT = "0x0D0D98E79773ADA350Aecda63A3Fd868452fb59C";
+const MIRZA_DECIMALS = 18;
+const MINT_PRICE = "8"; // tokens
+const FAUCET_AMOUNT = "10"; // tokens
+const FAUCET_COOLDOWN_SECONDS = 24 * 3600; // 24 hours
+const IPFS_GATEWAY = "https://ipfs.io/ipfs/";
+
+// Sepolia network configuration
+const SEPOLIA_CHAIN_ID = "0xaa36a7"; // 11155111 in decimal
+const SEPOLIA_CONFIG = {
+  chainId: SEPOLIA_CHAIN_ID,
+  chainName: "Sepolia Testnet",
+  nativeCurrency: {
+    name: "Sepolia Ether",
+    symbol: "ETH",
+    decimals: 18
+  },
+  rpcUrls: ["https://eth-sepolia.g.alchemy.com/v2/demo"],
+  blockExplorerUrls: ["https://sepolia.etherscan.io"]
+};
+
+/* ---------- ABIs (minimal) ---------- */
+const ERC20_ABI = [
+  "function approve(address spender, uint256 amount) external returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "event Approval(address indexed owner, address indexed spender, uint256 value)"
+];
+
+const FAUCET_ABI = [
+  "function claim() external",
+  "function canClaim(address user) view returns (bool)",
+  "function lastClaimedAt(address) view returns (uint256)",
+  "function cooldownSeconds() view returns (uint256)"
+];
+
+const SBT_ABI = [
+  "function mint() external",
+  "function tokenURI(uint256 tokenId) public view returns (string)",
+  "function totalSupply() public view returns (uint256)",
+  "function ownerOf(uint256 tokenId) public view returns (address)",
+  "function hasMinted(address) public view returns (bool)"
+];
+
+/* ---------- UI elements ---------- */
+const connectBtn = document.getElementById("connectBtn");
+const disconnectBtn = document.getElementById("disconnectBtn");
+const addTokenBtn = document.getElementById("addTokenBtn");
+
+const faucetBtn = document.getElementById("faucetBtn");
+const faucetInfo = document.getElementById("faucetInfo");
+
+const approveBtn = document.getElementById("approveBtn");
+const approveInfo = document.getElementById("approveInfo");
+
+const mintBtn = document.getElementById("mintBtn");
+const mintInfo = document.getElementById("mintInfo");
+
+const statusText = document.getElementById("statusText");
+const shortAddr = document.getElementById("shortAddr");
+const networkInfo = document.getElementById("networkInfo");
+
+const nftImage = document.getElementById("nftImage");
+const nftTitle = document.getElementById("nftTitle");
+const nftDesc = document.getElementById("nftDesc");
+const emptyState = document.getElementById("emptyState");
+
+/* ---------- state ---------- */
+let provider, signer, userAddress;
+let erc20, faucet, sbt;
+let faucetTimerInterval = null;
+let allowancePollInterval = null;
+let hasMintedSBT = false; // Track if user has minted SBT
+
+/* ---------- helpers ---------- */
+function shortAddress(addr){
+  if(!addr) return "—";
+  return addr.slice(0,6) + "..." + addr.slice(-4);
+}
+function setStatus(msg){
+  statusText.innerText = msg;
+}
+function toBN(nStr, decimals = MIRZA_DECIMALS){
+  return ethers.utils.parseUnits(nStr, decimals);
+}
+function fromBN(bn, decimals = MIRZA_DECIMALS){
+  try{ return parseFloat(ethers.utils.formatUnits(bn, decimals)); }catch(e){ return 0; }
+}
+
+/* ---------- network switching functions ---------- */
+async function switchToSepolia() {
+  if (!window.ethereum) {
+    setStatus("MetaMask not found");
+    return false;
+  }
+
+  try {
+    setStatus("Switching to Sepolia network...");
+    
+    // Try to switch to Sepolia
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: SEPOLIA_CHAIN_ID }],
+    });
+    
+    setStatus("Successfully switched to Sepolia");
+    return true;
+  } catch (switchError) {
+    // This error code indicates that the chain has not been added to MetaMask
+    if (switchError.code === 4902) {
+      try {
+        setStatus("Adding Sepolia network...");
+        
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [SEPOLIA_CONFIG],
+        });
+        
+        setStatus("Sepolia network added successfully");
+        return true;
+      } catch (addError) {
+        console.error("Error adding Sepolia network:", addError);
+        setStatus("Failed to add Sepolia network");
+        return false;
+      }
+    } else {
+      console.error("Error switching to Sepolia:", switchError);
+      setStatus("Failed to switch to Sepolia");
+      return false;
+    }
+  }
+}
+
+async function ensureSepoliaNetwork() {
+  if (!window.ethereum) return false;
+  
+  try {
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    
+    if (chainId !== SEPOLIA_CHAIN_ID) {
+      return await switchToSepolia();
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error checking chain ID:", error);
+    return false;
+  }
+}
+
+/* ---------- wallet functions ---------- */
+async function connectWallet(){
+  if(!window.ethereum){ 
+    alert("Please install MetaMask"); 
+    return; 
+  }
+  
+  // First ensure we're on Sepolia network
+  const networkSwitched = await ensureSepoliaNetwork();
+  if (!networkSwitched) {
+    setStatus("Please switch to Sepolia network manually");
+    return;
+  }
+  
+  provider = new ethers.providers.Web3Provider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  signer = provider.getSigner();
+  userAddress = await signer.getAddress();
+  erc20 = new ethers.Contract(MIRZA_TOKEN, ERC20_ABI, signer);
+  faucet = new ethers.Contract(FAUCET_CONTRACT, FAUCET_ABI, signer);
+  sbt = new ethers.Contract(SBT_CONTRACT, SBT_ABI, signer);
+
+  // Update button appearance for connected state
+  connectBtn.innerText = "Connected";
+  connectBtn.classList.add("connected");
+  connectBtn.disabled = true;
+  
+  disconnectBtn.disabled = false;
+
+  shortAddr.innerText = shortAddress(userAddress);
+  setStatus("Wallet connected to Sepolia");
+  await updateNetwork();
+  enableButtonsAfterConnect();
+  startAllowancePolling();
+  await refreshFaucetState();
+  await refreshApprovalState();
+  await refreshMintState();
+  await displayNFTIfOwned();
+
+  // Check if user has already minted and permanently disable buttons
+  await checkAndDisableMintButtons();
+
+  // listeners
+  window.ethereum.on("accountsChanged", accounts => {
+    if(accounts.length === 0) { disconnectWallet(); }
+    else { location.reload(); }
+  });
+  
+  window.ethereum.on("chainChanged", chainId => {
+    if (chainId !== SEPOLIA_CHAIN_ID) {
+      setStatus("Please switch back to Sepolia network");
+      disableAllActionButtons();
+    } else {
+      location.reload();
+    }
+  });
+}
+
+async function disconnectWallet(){
+  signer = null;
+  provider = null;
+  userAddress = null;
+  erc20 = faucet = sbt = null;
+  
+  // Reset button appearance
+  connectBtn.disabled = false;
+  connectBtn.innerText = "Connect Wallet";
+  connectBtn.classList.remove("connected");
+  
+  disconnectBtn.disabled = true;
+  shortAddr.innerText = "—";
+  setStatus("Wallet disconnected");
+  stopAllowancePolling();
+  stopFaucetTimer();
+  disableAllActionButtons();
+  hideNFT();
+}
+
+/* ---------- network & token helpers ---------- */
+async function updateNetwork(){
+  try{
+    const net = await provider.getNetwork();
+    networkInfo.innerText = net.name ? `${net.name} (chain ${net.chainId})` : `Chain ${net.chainId}`;
+  }catch(e){
+    networkInfo.innerText = "Unknown";
+  }
+}
+
+async function addMIRZATokenToWallet(){
+  if(!window.ethereum) return alert("MetaMask not found");
+  
+  // Ensure we're on Sepolia before adding token
+  const networkSwitched = await ensureSepoliaNetwork();
+  if (!networkSwitched) {
+    setStatus("Please switch to Sepolia network first");
+    return;
+  }
+  
+  try{
+    await window.ethereum.request({
+      method: 'wallet_watchAsset',
+      params: {
+        type: 'ERC20',
+        options: {
+          address: MIRZA_TOKEN,
+          symbol: 'MIRZA',
+          decimals: MIRZA_DECIMALS,
+          image: 'https://raw.githubusercontent.com/favicon.ico' // optional small placeholder
+        },
+      },
+    });
+    setStatus("Token add requested in wallet");
+  }catch(e){
+    console.error(e);
+    setStatus("Failed to add token");
+  }
+}
+
+/* ---------- faucet logic ---------- */
+async function refreshFaucetState(){
+  if(!faucet || !userAddress){ faucetInfo.innerText = "Not connected"; faucetBtn.disabled = true; return; }
+  try{
+    // Try canClaim boolean first
+    let canClaim = false;
+    try{
+      canClaim = await faucet.canClaim(userAddress);
+    }catch(e){
+      // fallback: use lastClaimedAt + cooldown
+      const last = await faucet.lastClaimedAt(userAddress);
+      const cd = await faucet.cooldownSeconds();
+      const next = last.toNumber() + cd.toNumber();
+      canClaim = (Math.floor(Date.now()/1000) >= next);
+    }
+
+    if(canClaim){
+      faucetBtn.disabled = false;
+      faucetInfo.innerHTML = `<span class="small">Ready to claim</span>`;
+      stopFaucetTimer();
+    } else {
+      // get lastClaimedAt and cooldown to show countdown
+      const last = await faucet.lastClaimedAt(userAddress);
+      const cd = await faucet.cooldownSeconds();
+      const lastTs = last.toNumber();
+      const cdSec = cd.toNumber() || FAUCET_COOLDOWN_SECONDS;
+      const nextTs = lastTs + cdSec;
+      startFaucetCountdown(nextTs);
+    }
+  }catch(e){
+    console.error("faucet state err", e);
+    faucetInfo.innerText = "Faucet status unknown";
+    faucetBtn.disabled = false; // allow try
+  }
+}
+
+async function claimFaucet(){
+  if(!faucet || !signer) return alert("Connect wallet first");
+  
+  // Ensure we're on Sepolia before claiming
+  const networkSwitched = await ensureSepoliaNetwork();
+  if (!networkSwitched) {
+    setStatus("Please switch to Sepolia network first");
+    return;
+  }
+  
+  try{
+    faucetBtn.disabled = true;
+    setStatus("Claiming 10 MIRZA...");
+    const tx = await faucet.claim();
+    await tx.wait();
+    setStatus("Faucet claimed: 10 MIRZA received");
+    // refresh state
+    await refreshFaucetState();
+    await refreshApprovalState();
+  }catch(e){
+    console.error(e);
+    setStatus("Faucet claim failed");
+    // attempt to refresh state (maybe still on cooldown)
+    await refreshFaucetState();
+  }
+}
+
+function startFaucetCountdown(nextTs){
+  stopFaucetTimer();
+  faucetBtn.disabled = true;
+  const update = ()=> {
+    const now = Math.floor(Date.now()/1000);
+    const diff = nextTs - now;
+    if(diff <= 0){
+      faucetInfo.innerHTML = `<span class="small">Ready to claim</span>`;
+      faucetBtn.disabled = false;
+      stopFaucetTimer();
+      return;
+    }
+    const hh = Math.floor(diff/3600);
+    const mm = Math.floor((diff%3600)/60);
+    const ss = diff%60;
+    faucetInfo.innerHTML = `<span class="small">Next claim in: </span> <span class="countdown">${hh}h ${mm}m ${ss}s</span>`;
+  };
+  update();
+  faucetTimerInterval = setInterval(update, 1000);
+}
+function stopFaucetTimer(){ if(faucetTimerInterval){ clearInterval(faucetTimerInterval); faucetTimerInterval=null; } }
+
+/* ---------- approval & mint ---------- */
+async function refreshApprovalState(){
+  if(!erc20 || !sbt || !userAddress){ 
+    approveInfo.innerText = "—"; 
+    approveBtn.disabled=true; 
+    return; 
+  }
+  
+  try{
+    // First check if user has already minted - if yes, permanently disable buttons
+    const minted = await sbt.hasMinted(userAddress);
+    if(minted){
+      hasMintedSBT = true;
+      approveBtn.disabled = true;
+      mintBtn.disabled = true;
+      approveInfo.innerText = "Already minted - No approval needed";
+      mintInfo.innerText = "Already minted";
+      return;
+    }
+
+    const allowance = await erc20.allowance(userAddress, SBT_CONTRACT);
+    const allowanceNum = fromBN(allowance);
+    approveInfo.innerText = `Allowance: ${allowanceNum}`;
+    
+    if(allowanceNum >= Number(MINT_PRICE)){
+      approveBtn.disabled = true;
+      mintBtn.disabled = false;
+    } else {
+      approveBtn.disabled = false;
+      mintBtn.disabled = true;
+    }
+  }catch(e){
+    console.error("allow err", e);
+    approveInfo.innerText = "Allowance: ?"; 
+    approveBtn.disabled=false;
+    mintBtn.disabled = true;
+  }
+}
+
+// New function to check and permanently disable mint buttons
+async function checkAndDisableMintButtons(){
+  if(!sbt || !userAddress) return;
+  
+  try{
+    const minted = await sbt.hasMinted(userAddress);
+    if(minted){
+      hasMintedSBT = true;
+      approveBtn.disabled = true;
+      mintBtn.disabled = true;
+      approveInfo.innerText = "Already minted - No approval needed";
+      mintInfo.innerText = "Already minted";
+      setStatus("You have already minted your SBT");
+    }
+  }catch(e){
+    console.error("Error checking mint status:", e);
+  }
+}
+
+async function startAllowancePolling(){
+  stopAllowancePolling();
+  await refreshApprovalState();
+  allowancePollInterval = setInterval(refreshApprovalState, 8000);
+}
+function stopAllowancePolling(){ if(allowancePollInterval){ clearInterval(allowancePollInterval); allowancePollInterval=null; } }
+
+async function approveTokens(){
+  if(!erc20 || !signer) return alert("Connect wallet first");
+  
+  // Ensure we're on Sepolia before approving
+  const networkSwitched = await ensureSepoliaNetwork();
+  if (!networkSwitched) {
+    setStatus("Please switch to Sepolia network first");
+    return;
+  }
+  
+  try{
+    approveBtn.disabled = true;
+    setStatus("Sending approve transaction...");
+    const tx = await erc20.approve(SBT_CONTRACT, toBN(MINT_PRICE));
+    await tx.wait();
+    setStatus("Approved 8 MIRZA");
+    await refreshApprovalState();
+  }catch(e){
+    console.error(e);
+    setStatus("Approval failed");
+    approveBtn.disabled = false;
+  }
+}
+
+async function refreshMintState(){
+  if(!sbt || !userAddress) { 
+    mintInfo.innerText="Not connected"; 
+    mintBtn.disabled=true; 
+    return; 
+  }
+  
+  try{
+    const minted = await sbt.hasMinted(userAddress);
+    if(minted){
+      hasMintedSBT = true;
+      mintInfo.innerText = "Already minted";
+      mintBtn.disabled = true;
+      approveBtn.disabled = true;
+      approveInfo.innerText = "Already minted - No approval needed";
+    } else {
+      mintInfo.innerText = "Ready to mint";
+      // mint button disabled/enabled depends on allowance
+      const allowance = await erc20.allowance(userAddress, SBT_CONTRACT);
+      const allowanceNum = fromBN(allowance);
+      mintBtn.disabled = !(allowanceNum >= Number(MINT_PRICE));
+    }
+  }catch(e){
+    console.error("mintState err", e);
+    mintInfo.innerText = "Status unknown";
+    mintBtn.disabled = true;
+  }
+}
+
+async function mintSBT(){
+  if(!sbt || !signer) return alert("Connect wallet first");
+  
+  // Ensure we're on Sepolia before minting
+  const networkSwitched = await ensureSepoliaNetwork();
+  if (!networkSwitched) {
+    setStatus("Please switch to Sepolia network first");
+    return;
+  }
+  
+  try{
+    mintBtn.disabled = true;
+    setStatus("Minting SBT...");
+    const tx = await sbt.mint();
+    await tx.wait();
+    setStatus("Mint success");
+    hasMintedSBT = true; // Set flag to true after successful mint
+    await refreshMintState();
+    await displayNFTIfOwned();
+    
+    // Permanently disable both buttons after successful mint
+    approveBtn.disabled = true;
+    mintBtn.disabled = true;
+    approveInfo.innerText = "Already minted - No approval needed";
+    mintInfo.innerText = "Already minted";
+    
+  }catch(e){
+    console.error(e);
+    setStatus("Mint failed");
+    mintBtn.disabled = false;
+  }
+}
+
+/* ---------- display NFT image (no tokenId shown) ---------- */
+async function displayNFTIfOwned(){
+  if(!sbt || !provider || !userAddress) return;
+  try{
+    const total = await sbt.totalSupply();
+    const totalNum = total.toNumber();
+    if(totalNum === 0){ hideNFT(); return; }
+
+    // iterate tokens (1..total) to find owner
+    for(let i=1;i<=totalNum;i++){
+      try{
+        const owner = await sbt.ownerOf(i);
+        if(owner.toLowerCase() === userAddress.toLowerCase()){
+          // fetch tokenURI and metadata
+          let uri = await sbt.tokenURI(i);
+          if(uri.startsWith("ipfs://")) uri = uri.replace("ipfs://", IPFS_GATEWAY);
+          const resp = await fetch(uri);
+          if(!resp.ok) { console.warn("meta fetch failed", resp.status); continue; }
+          const meta = await resp.json();
+          let image = meta.image || meta.image_url || null;
+          if(!image){ console.warn("no image in metadata"); continue; }
+          if(image.startsWith("ipfs://")) image = image.replace("ipfs://", IPFS_GATEWAY);
+          // show only image and name (no token ID)
+          nftImage.src = image;
+          nftImage.style.display = "block";
+          nftTitle.innerText = meta.name || "Mirza SBT";
+          nftTitle.style.display = "block";
+          nftDesc.innerText = meta.description || "";
+          nftDesc.style.display = "block";
+          emptyState.style.display = "none";
+          return;
+        }
+      }catch(err){
+        // ownerOf might revert for non-existent token -> skip
+        continue;
+      }
+    }
+    hideNFT();
+  }catch(e){
+    console.error(e);
+    hideNFT();
+  }
+}
+function hideNFT(){
+  nftImage.style.display = "none";
+  nftTitle.style.display = "none";
+  nftDesc.style.display = "none";
+  emptyState.style.display = "flex";
+}
+
+/* ---------- UI helpers ---------- */
+function enableButtonsAfterConnect(){
+  faucetBtn.disabled = false;
+  // Only enable approve/mint buttons if user hasn't minted yet
+  if(!hasMintedSBT){
+    approveBtn.disabled = false;
+    // mintBtn will be set based on allowance in refreshApprovalState
+  } else {
+    approveBtn.disabled = true;
+    mintBtn.disabled = true;
+  }
+  disconnectBtn.disabled = false;
+  connectBtn.disabled = true;
+}
+function disableAllActionButtons(){
+  faucetBtn.disabled = true;
+  approveBtn.disabled = true;
+  mintBtn.disabled = true;
+  disconnectBtn.disabled = true;
+}
+
+/* ---------- cleanup ---------- */
+function startAllRefreshLoops(){
+  // already started individual ones
+}
+function stopAllRefreshLoops(){ stopAllowancePolling(); stopFaucetTimer(); }
+
+/* ---------- wiring ---------- */
+connectBtn.addEventListener("click", connectWallet);
+disconnectBtn.addEventListener("click", disconnectWallet);
+addTokenBtn.addEventListener("click", addMIRZATokenToWallet);
+
+faucetBtn.addEventListener("click", claimFaucet);
+approveBtn.addEventListener("click", approveTokens);
+mintBtn.addEventListener("click", mintSBT);
+
+/* ---------- initial state ---------- */
+disableAllActionButtons();
+setStatus("Please connect your wallet to interact");
+networkInfo.innerText = "Not connected";
+
+/* ---------- expose for debugging (optional) ---------- */
+window.__mirza = {
+  connectWallet, disconnectWallet, displayNFTIfOwned, refreshFaucetState
+};
+</script>
+</body>
+</html>
